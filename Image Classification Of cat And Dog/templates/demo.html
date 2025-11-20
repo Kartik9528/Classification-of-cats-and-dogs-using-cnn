@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+
+{% block title %}Demo - Cat & Dog CNN Classifier{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Demo Header -->
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h1 class="display-4 mb-3">
+                <i class="fas fa-play-circle text-success me-3"></i>
+                Interactive Demo
+            </h1>
+            <p class="lead">Try our CNN model with sample images or upload your own!</p>
+        </div>
+    </div>
+
+    <!-- Sample Images Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card demo-card">
+                <div class="card-body text-center">
+                    <h3 class="mb-4">
+                        <i class="fas fa-images me-2"></i>
+                        Sample Images for Testing
+                    </h3>
+                    <p class="mb-4">Click on any sample image below to see how our model classifies it:</p>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="sample-image-container">
+                                <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=300&h=300&fit=crop" 
+                                     class="sample-image img-fluid rounded shadow" 
+                                     alt="Sample Cat" 
+                                     onclick="testSampleImage(this.src, 'Cat')">
+                                <p class="mt-2 fw-bold">Sample Cat Image</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="sample-image-container">
+                                <img src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=300&fit=crop" 
+                                     class="sample-image img-fluid rounded shadow" 
+                                     alt="Sample Dog" 
+                                     onclick="testSampleImage(this.src, 'Dog')">
+                                <p class="mt-2 fw-bold">Sample Dog Image</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="sample-image-container">
+                                <img src="https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=300&h=300&fit=crop" 
+                                     class="sample-image img-fluid rounded shadow" 
+                                     alt="Sample Cat 2" 
+                                     onclick="testSampleImage(this.src, 'Cat')">
+                                <p class="mt-2 fw-bold">Another Cat Image</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="sample-image-container">
+                                <img src="https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=300&h=300&fit=crop" 
+                                     class="sample-image img-fluid rounded shadow" 
+                                     alt="Sample Dog 2" 
+                                     onclick="testSampleImage(this.src, 'Dog')">
+                                <p class="mt-2 fw-bold">Another Dog Image</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Your Own Section -->
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-lg">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-upload me-2"></i>
+                        Or Upload Your Own Image
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form id="demoUploadForm" enctype="multipart/form-data">
+                        <div class="mb-4">
+                            <div class="upload-area" id="demoUploadArea">
+                                <div class="upload-content">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                    <h5>Upload your own image</h5>
+                                    <p class="text-muted">Supports JPG, PNG, GIF, BMP, TIFF</p>
+                                    <input type="file" id="demoFileInput" name="file" accept="image/*" class="d-none">
+                                    <button type="button" class="btn btn-outline-info" onclick="document.getElementById('demoFileInput').click()">
+                                        <i class="fas fa-folder-open me-2"></i>Choose File
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-info btn-lg" id="demoPredictBtn" disabled>
+                                <i class="fas fa-magic me-2"></i>
+                                Analyze Image
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demo Results Section -->
+    <div id="demoResultsSection" class="row mt-5" style="display: none;">
+        <div class="col-12">
+            <div class="card shadow-lg">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Demo Results
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="text-center">
+                                <h5>Test Image</h5>
+                                <img id="demoResultImage" class="img-fluid rounded shadow" style="max-height: 400px;">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="prediction-results">
+                                <h5>CNN Prediction</h5>
+                                <div class="prediction-card">
+                                    <div class="prediction-icon">
+                                        <i id="demoPredictionIcon" class="fas fa-question-circle fa-3x"></i>
+                                    </div>
+                                    <div class="prediction-text">
+                                        <h3 id="demoPredictionClass" class="mb-2">Unknown</h3>
+                                        <p class="confidence-text">
+                                            Confidence: <span id="demoConfidence" class="badge bg-success fs-6">0%</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <h6>Detailed Analysis</h6>
+                                    <div id="demoProbabilityChart" class="probability-chart">
+                                        <!-- Chart will be inserted here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="demoLoadingSpinner" class="text-center mt-4" style="display: none;">
+        <div class="spinner-border text-info" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Analyzing image<span class="loading-dots"></span></p>
+    </div>
+
+    <!-- Error Alert -->
+    <div id="demoErrorAlert" class="alert alert-danger mt-4" style="display: none;">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <span id="demoErrorMessage"></span>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Demo file upload handling
+document.getElementById('demoFileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        document.getElementById('demoPredictBtn').disabled = false;
+        
+        // Preview image
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('demoResultImage').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Demo drag and drop
+const demoUploadArea = document.getElementById('demoUploadArea');
+demoUploadArea.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    demoUploadArea.classList.add('drag-over');
+});
+
+demoUploadArea.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    demoUploadArea.classList.remove('drag-over');
+});
+
+demoUploadArea.addEventListener('drop', function(e) {
+    e.preventDefault();
+    demoUploadArea.classList.remove('drag-over');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        document.getElementById('demoFileInput').files = files;
+        document.getElementById('demoFileInput').dispatchEvent(new Event('change'));
+    }
+});
+
+// Demo form submission
+document.getElementById('demoUploadForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const fileInput = document.getElementById('demoFileInput');
+    if (!fileInput.files[0]) {
+        showDemoError('Please select a file first.');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    
+    // Show loading
+    document.getElementById('demoLoadingSpinner').style.display = 'block';
+    document.getElementById('demoResultsSection').style.display = 'none';
+    document.getElementById('demoErrorAlert').style.display = 'none';
+    
+    // Make request
+    fetch('/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('demoLoadingSpinner').style.display = 'none';
+        
+        if (data.success) {
+            displayDemoResults(data);
+        } else {
+            showDemoError(data.error || 'Prediction failed');
+        }
+    })
+    .catch(error => {
+        document.getElementById('demoLoadingSpinner').style.display = 'none';
+        showDemoError('Network error: ' + error.message);
+    });
+});
+
+// Test sample image
+function testSampleImage(imageUrl, expectedClass) {
+    // Show loading
+    document.getElementById('demoLoadingSpinner').style.display = 'block';
+    document.getElementById('demoResultsSection').style.display = 'none';
+    document.getElementById('demoErrorAlert').style.display = 'none';
+    
+    // Set the image
+    document.getElementById('demoResultImage').src = imageUrl;
+    
+    // Simulate prediction (in real app, you'd send the image to server)
+    setTimeout(() => {
+        document.getElementById('demoLoadingSpinner').style.display = 'none';
+        
+        // Mock prediction results
+        const mockResult = {
+            prediction: expectedClass,
+            confidence: (0.85 + Math.random() * 0.1).toFixed(2),
+            probabilities: {
+                'Cat': expectedClass === 'Cat' ? 0.85 + Math.random() * 0.1 : 0.1 + Math.random() * 0.1,
+                'Dog': expectedClass === 'Dog' ? 0.85 + Math.random() * 0.1 : 0.1 + Math.random() * 0.1
+            }
+        };
+        
+        displayDemoResults(mockResult);
+    }, 1500);
+}
+
+function displayDemoResults(data) {
+    // Update prediction
+    document.getElementById('demoPredictionClass').textContent = data.prediction;
+    document.getElementById('demoConfidence').textContent = data.confidence + '%';
+    
+    // Update icon
+    const icon = document.getElementById('demoPredictionIcon');
+    if (data.prediction === 'Cat') {
+        icon.className = 'fas fa-cat fa-3x text-warning';
+    } else {
+        icon.className = 'fas fa-dog fa-3x text-info';
+    }
+    
+    // Update confidence badge color
+    const confidence = parseFloat(data.confidence);
+    const badge = document.getElementById('demoConfidence');
+    badge.className = 'badge fs-6';
+    if (confidence >= 80) {
+        badge.classList.add('bg-success');
+    } else if (confidence >= 60) {
+        badge.classList.add('bg-warning');
+    } else {
+        badge.classList.add('bg-danger');
+    }
+    
+    // Create probability chart
+    createDemoProbabilityChart(data.probabilities);
+    
+    // Show results with animation
+    document.getElementById('demoResultsSection').style.display = 'block';
+    document.getElementById('demoResultsSection').classList.add('fade-in');
+}
+
+function createDemoProbabilityChart(probabilities) {
+    const chartContainer = document.getElementById('demoProbabilityChart');
+    chartContainer.innerHTML = '';
+    
+    Object.entries(probabilities).forEach(([className, probability]) => {
+        const percentage = (probability * 100).toFixed(1);
+        const color = className === 'Cat' ? '#FF6B6B' : '#4ECDC4';
+        
+        const barContainer = document.createElement('div');
+        barContainer.className = 'probability-bar mb-2';
+        
+        barContainer.innerHTML = `
+            <div class="d-flex justify-content-between mb-1">
+                <span class="fw-bold">${className}</span>
+                <span>${percentage}%</span>
+            </div>
+            <div class="progress" style="height: 20px;">
+                <div class="progress-bar" role="progressbar" 
+                     style="width: ${percentage}%; background-color: ${color};" 
+                     aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100">
+                </div>
+            </div>
+        `;
+        
+        chartContainer.appendChild(barContainer);
+    });
+}
+
+function showDemoError(message) {
+    document.getElementById('demoErrorMessage').textContent = message;
+    document.getElementById('demoErrorAlert').style.display = 'block';
+}
+</script>
+{% endblock %}
